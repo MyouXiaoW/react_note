@@ -10,31 +10,15 @@
 import type {Fiber} from './ReactFiber';
 import type {FiberRoot} from './ReactFiberRoot';
 import type {RootTag} from 'shared/ReactRootTags';
-import type {
-  Instance,
-  TextInstance,
-  Container,
-  PublicInstance,
-} from './ReactFiberHostConfig';
+import type {Instance, TextInstance, Container, PublicInstance} from './ReactFiberHostConfig';
 import {FundamentalComponent} from 'shared/ReactWorkTags';
 import type {ReactNodeList} from 'shared/ReactTypes';
 import type {ExpirationTime} from './ReactFiberExpirationTime';
-import type {
-  SuspenseHydrationCallbacks,
-  SuspenseState,
-} from './ReactFiberSuspenseComponent';
+import type {SuspenseHydrationCallbacks, SuspenseState} from './ReactFiberSuspenseComponent';
 
-import {
-  findCurrentHostFiber,
-  findCurrentHostFiberWithNoPortals,
-} from 'react-reconciler/reflection';
+import {findCurrentHostFiber, findCurrentHostFiberWithNoPortals} from 'react-reconciler/reflection';
 import {get as getInstance} from 'shared/ReactInstanceMap';
-import {
-  HostComponent,
-  ClassComponent,
-  HostRoot,
-  SuspenseComponent,
-} from 'shared/ReactWorkTags';
+import {HostComponent, ClassComponent, HostRoot, SuspenseComponent} from 'shared/ReactWorkTags';
 import getComponentName from 'shared/getComponentName';
 import invariant from 'shared/invariant';
 import warningWithoutStack from 'shared/warningWithoutStack';
@@ -45,7 +29,7 @@ import {
   findCurrentUnmaskedContext,
   processChildContext,
   emptyContextObject,
-  isContextProvider as isLegacyContextProvider,
+  isContextProvider as isLegacyContextProvider
 } from './ReactFiberContext';
 import {createFiberRoot} from './ReactFiberRoot';
 import {injectInternals} from './ReactFiberDevToolsHook';
@@ -66,28 +50,19 @@ import {
   flushPassiveEffects,
   warnIfNotScopedWithMatchingAct,
   warnIfUnmockedScheduler,
-  IsThisRendererActing,
+  IsThisRendererActing
 } from './ReactFiberWorkLoop';
 import {createUpdate, enqueueUpdate} from './ReactUpdateQueue';
 import ReactFiberInstrumentation from './ReactFiberInstrumentation';
 import {
   getStackByFiberInDevAndProd,
   phase as ReactCurrentFiberPhase,
-  current as ReactCurrentFiberCurrent,
+  current as ReactCurrentFiberCurrent
 } from './ReactCurrentFiber';
 import {StrictMode} from './ReactTypeOfMode';
-import {
-  Sync,
-  computeInteractiveExpiration,
-  computeContinuousHydrationExpiration,
-} from './ReactFiberExpirationTime';
+import {Sync, computeInteractiveExpiration, computeContinuousHydrationExpiration} from './ReactFiberExpirationTime';
 import {requestCurrentSuspenseConfig} from './ReactFiberSuspenseConfig';
-import {
-  scheduleRefresh,
-  scheduleRoot,
-  setRefreshHandler,
-  findHostInstancesForRefresh,
-} from './ReactFiberHotReloading';
+import {scheduleRefresh, scheduleRoot, setRefreshHandler, findHostInstancesForRefresh} from './ReactFiberHotReloading';
 
 type OpaqueRoot = FiberRoot;
 
@@ -105,7 +80,7 @@ type DevToolsConfig = {|
   // Used by RN in-app inspector.
   // This API is unfortunately RN-specific.
   // TODO: Change it to accept Fiber instead and type it properly.
-  getInspectorDataForViewTag?: (tag: number) => Object,
+  getInspectorDataForViewTag?: (tag: number) => Object
 |};
 
 let didWarnAboutNestedUpdates;
@@ -116,9 +91,7 @@ if (__DEV__) {
   didWarnAboutFindNodeInStrictMode = {};
 }
 
-function getContextForSubtree(
-  parentComponent: ?React$Component<any, any>,
-): Object {
+function getContextForSubtree(parentComponent: ?React$Component<any, any>): Object {
   if (!parentComponent) {
     return emptyContextObject;
   }
@@ -142,11 +115,7 @@ function findHostInstance(component: Object): PublicInstance | null {
     if (typeof component.render === 'function') {
       invariant(false, 'Unable to find node on an unmounted component.');
     } else {
-      invariant(
-        false,
-        'Argument appears to not be a ReactComponent. Keys: %s',
-        Object.keys(component),
-      );
+      invariant(false, 'Argument appears to not be a ReactComponent. Keys: %s', Object.keys(component));
     }
   }
   const hostFiber = findCurrentHostFiber(fiber);
@@ -156,21 +125,14 @@ function findHostInstance(component: Object): PublicInstance | null {
   return hostFiber.stateNode;
 }
 
-function findHostInstanceWithWarning(
-  component: Object,
-  methodName: string,
-): PublicInstance | null {
+function findHostInstanceWithWarning(component: Object, methodName: string): PublicInstance | null {
   if (__DEV__) {
     const fiber = getInstance(component);
     if (fiber === undefined) {
       if (typeof component.render === 'function') {
         invariant(false, 'Unable to find node on an unmounted component.');
       } else {
-        invariant(
-          false,
-          'Argument appears to not be a ReactComponent. Keys: %s',
-          Object.keys(component),
-        );
+        invariant(false, 'Argument appears to not be a ReactComponent. Keys: %s', Object.keys(component));
       }
     }
     const hostFiber = findCurrentHostFiber(fiber);
@@ -192,7 +154,7 @@ function findHostInstanceWithWarning(
             methodName,
             methodName,
             componentName,
-            getStackByFiberInDevAndProd(hostFiber),
+            getStackByFiberInDevAndProd(hostFiber)
           );
         } else {
           warningWithoutStack(
@@ -205,7 +167,7 @@ function findHostInstanceWithWarning(
             methodName,
             methodName,
             componentName,
-            getStackByFiberInDevAndProd(hostFiber),
+            getStackByFiberInDevAndProd(hostFiber)
           );
         }
       }
@@ -219,8 +181,9 @@ export function createContainer(
   containerInfo: Container,
   tag: RootTag,
   hydrate: boolean,
-  hydrationCallbacks: null | SuspenseHydrationCallbacks,
+  hydrationCallbacks: null | SuspenseHydrationCallbacks
 ): OpaqueRoot {
+  //创建FiberRoot
   return createFiberRoot(containerInfo, tag, hydrate, hydrationCallbacks);
 }
 
@@ -228,7 +191,7 @@ export function updateContainer(
   element: ReactNodeList,
   container: OpaqueRoot,
   parentComponent: ?React$Component<any, any>,
-  callback: ?Function,
+  callback: ?Function
 ): ExpirationTime {
   const current = container.current;
   const currentTime = requestCurrentTime();
@@ -240,11 +203,7 @@ export function updateContainer(
     }
   }
   const suspenseConfig = requestCurrentSuspenseConfig();
-  const expirationTime = computeExpirationForFiber(
-    currentTime,
-    current,
-    suspenseConfig,
-  );
+  const expirationTime = computeExpirationForFiber(currentTime, current, suspenseConfig);
 
   if (__DEV__) {
     if (ReactFiberInstrumentation.debugTool) {
@@ -266,11 +225,7 @@ export function updateContainer(
   }
 
   if (__DEV__) {
-    if (
-      ReactCurrentFiberPhase === 'render' &&
-      ReactCurrentFiberCurrent !== null &&
-      !didWarnAboutNestedUpdates
-    ) {
+    if (ReactCurrentFiberPhase === 'render' && ReactCurrentFiberCurrent !== null && !didWarnAboutNestedUpdates) {
       didWarnAboutNestedUpdates = true;
       warningWithoutStack(
         false,
@@ -278,7 +233,7 @@ export function updateContainer(
           'triggering nested component updates from render is not allowed. ' +
           'If necessary, trigger nested updates in componentDidUpdate.\n\n' +
           'Check the render method of %s.',
-        getComponentName(ReactCurrentFiberCurrent.type) || 'Unknown',
+        getComponentName(ReactCurrentFiberCurrent.type) || 'Unknown'
       );
     }
   }
@@ -292,9 +247,8 @@ export function updateContainer(
   if (callback !== null) {
     warningWithoutStack(
       typeof callback === 'function',
-      'render(...): Expected the last optional `callback` argument to be a ' +
-        'function. Instead received: %s.',
-      callback,
+      'render(...): Expected the last optional `callback` argument to be a ' + 'function. Instead received: %s.',
+      callback
     );
     update.callback = callback;
   }
@@ -316,12 +270,10 @@ export {
   flushControlled,
   flushSync,
   flushPassiveEffects,
-  IsThisRendererActing,
+  IsThisRendererActing
 };
 
-export function getPublicRootInstance(
-  container: OpaqueRoot,
-): React$Component<any, any> | PublicInstance | null {
+export function getPublicRootInstance(container: OpaqueRoot): React$Component<any, any> | PublicInstance | null {
   const containerFiber = container.current;
   if (!containerFiber.child) {
     return null;
@@ -414,9 +366,7 @@ export {findHostInstance};
 
 export {findHostInstanceWithWarning};
 
-export function findHostInstanceWithNoPortals(
-  fiber: Fiber,
-): PublicInstance | null {
+export function findHostInstanceWithNoPortals(fiber: Fiber): PublicInstance | null {
   const hostFiber = findCurrentHostFiberWithNoPortals(fiber);
   if (hostFiber === null) {
     return null;
@@ -439,12 +389,7 @@ let scheduleUpdate = null;
 let setSuspenseHandler = null;
 
 if (__DEV__) {
-  const copyWithSetImpl = (
-    obj: Object | Array<any>,
-    path: Array<string | number>,
-    idx: number,
-    value: any,
-  ) => {
+  const copyWithSetImpl = (obj: Object | Array<any>, path: Array<string | number>, idx: number, value: any) => {
     if (idx >= path.length) {
       return value;
     }
@@ -455,21 +400,12 @@ if (__DEV__) {
     return updated;
   };
 
-  const copyWithSet = (
-    obj: Object | Array<any>,
-    path: Array<string | number>,
-    value: any,
-  ): Object | Array<any> => {
+  const copyWithSet = (obj: Object | Array<any>, path: Array<string | number>, value: any): Object | Array<any> => {
     return copyWithSetImpl(obj, path, 0, value);
   };
 
   // Support DevTools editable values for useState and useReducer.
-  overrideHookState = (
-    fiber: Fiber,
-    id: number,
-    path: Array<string | number>,
-    value: any,
-  ) => {
+  overrideHookState = (fiber: Fiber, id: number, path: Array<string | number>, value: any) => {
     // For now, the "id" of stateful hooks is just the stateful hook index.
     // This may change in the future with e.g. nested hooks.
     let currentHook = fiber.memoizedState;
@@ -542,6 +478,6 @@ export function injectIntoDevTools(devToolsConfig: DevToolsConfig): boolean {
     scheduleRoot: __DEV__ ? scheduleRoot : null,
     setRefreshHandler: __DEV__ ? setRefreshHandler : null,
     // Enables DevTools to append owner stacks to error messages in DEV mode.
-    getCurrentFiber: __DEV__ ? () => ReactCurrentFiberCurrent : null,
+    getCurrentFiber: __DEV__ ? () => ReactCurrentFiberCurrent : null
   });
 }

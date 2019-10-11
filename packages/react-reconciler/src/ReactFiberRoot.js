@@ -19,10 +19,7 @@ import type {ReactPriorityLevel} from './SchedulerWithReactIntegration';
 import {noTimeout} from './ReactFiberHostConfig';
 import {createHostRootFiber} from './ReactFiber';
 import {NoWork} from './ReactFiberExpirationTime';
-import {
-  enableSchedulerTracing,
-  enableSuspenseCallback,
-} from 'shared/ReactFeatureFlags';
+import {enableSchedulerTracing, enableSuspenseCallback} from 'shared/ReactFeatureFlags';
 import {unstable_getThreadID} from 'scheduler/tracing';
 import {NoPriority} from './SchedulerWithReactIntegration';
 
@@ -39,10 +36,7 @@ type BaseFiberRootProperties = {|
   // The currently active root fiber. This is the mutable root of the tree.
   current: Fiber,
 
-  pingCache:
-    | WeakMap<Thenable, Set<ExpirationTime>>
-    | Map<Thenable, Set<ExpirationTime>>
-    | null,
+  pingCache: WeakMap<Thenable, Set<ExpirationTime>> | Map<Thenable, Set<ExpirationTime>> | null,
 
   finishedExpirationTime: ExpirationTime,
   // A finished work-in-progress HostRoot that's ready to be committed.
@@ -72,7 +66,7 @@ type BaseFiberRootProperties = {|
   // The latest time at which a suspended component pinged the root to
   // render again
   lastPingedTime: ExpirationTime,
-  lastExpiredTime: ExpirationTime,
+  lastExpiredTime: ExpirationTime
 |};
 
 // The following attributes are only used by interaction tracing builds.
@@ -82,12 +76,12 @@ type BaseFiberRootProperties = {|
 type ProfilingOnlyFiberRootProperties = {|
   interactionThreadID: number,
   memoizedInteractions: Set<Interaction>,
-  pendingInteractionMap: PendingInteractionMap,
+  pendingInteractionMap: PendingInteractionMap
 |};
 
 // The follow fields are only used by enableSuspenseCallback for hydration.
 type SuspenseCallbackOnlyFiberRootProperties = {|
-  hydrationCallbacks: null | SuspenseHydrationCallbacks,
+  hydrationCallbacks: null | SuspenseHydrationCallbacks
 |};
 
 // Exported FiberRoot type includes all properties,
@@ -98,7 +92,7 @@ type SuspenseCallbackOnlyFiberRootProperties = {|
 export type FiberRoot = {
   ...BaseFiberRootProperties,
   ...ProfilingOnlyFiberRootProperties,
-  ...SuspenseCallbackOnlyFiberRootProperties,
+  ...SuspenseCallbackOnlyFiberRootProperties
 };
 
 function FiberRootNode(containerInfo, tag, hydrate) {
@@ -136,8 +130,23 @@ export function createFiberRoot(
   containerInfo: any,
   tag: RootTag,
   hydrate: boolean,
-  hydrationCallbacks: null | SuspenseHydrationCallbacks,
+  hydrationCallbacks: null | SuspenseHydrationCallbacks
 ): FiberRoot {
+  //正式创建一个FiberRootNode类
+  //在react应用中，每一个容器DOM都会有一个相对应的FiberRoot
+
+  /**
+   * FiberRoot 核心成员
+   *
+   * key                         value
+   * current                    FiberNode(HostRoot)
+   * containerInfo              DOMContainer
+   * finishedWork               FiberNode(HostRoot) || null
+   *
+   * ReactFiber 核心数据结构
+   * https://github.com/hushicai/hushicai.github.io/issues/40
+   */
+
   const root: FiberRoot = (new FiberRootNode(containerInfo, tag, hydrate): any);
   if (enableSuspenseCallback) {
     root.hydrationCallbacks = hydrationCallbacks;
@@ -145,6 +154,8 @@ export function createFiberRoot(
 
   // Cyclic construction. This cheats the type system right now because
   // stateNode is any.
+
+  //uninitializedFiber 创建一个FiberNode(HostFiber)
   const uninitializedFiber = createHostRootFiber(tag);
   root.current = uninitializedFiber;
   uninitializedFiber.stateNode = root;
@@ -152,23 +163,13 @@ export function createFiberRoot(
   return root;
 }
 
-export function isRootSuspendedAtTime(
-  root: FiberRoot,
-  expirationTime: ExpirationTime,
-): boolean {
+export function isRootSuspendedAtTime(root: FiberRoot, expirationTime: ExpirationTime): boolean {
   const firstSuspendedTime = root.firstSuspendedTime;
   const lastSuspendedTime = root.lastSuspendedTime;
-  return (
-    firstSuspendedTime !== NoWork &&
-    (firstSuspendedTime >= expirationTime &&
-      lastSuspendedTime <= expirationTime)
-  );
+  return firstSuspendedTime !== NoWork && (firstSuspendedTime >= expirationTime && lastSuspendedTime <= expirationTime);
 }
 
-export function markRootSuspendedAtTime(
-  root: FiberRoot,
-  expirationTime: ExpirationTime,
-): void {
+export function markRootSuspendedAtTime(root: FiberRoot, expirationTime: ExpirationTime): void {
   const firstSuspendedTime = root.firstSuspendedTime;
   const lastSuspendedTime = root.lastSuspendedTime;
   if (firstSuspendedTime < expirationTime) {
@@ -187,10 +188,7 @@ export function markRootSuspendedAtTime(
   }
 }
 
-export function markRootUpdatedAtTime(
-  root: FiberRoot,
-  expirationTime: ExpirationTime,
-): void {
+export function markRootUpdatedAtTime(root: FiberRoot, expirationTime: ExpirationTime): void {
   // Update the range of pending times
   const firstPendingTime = root.firstPendingTime;
   if (expirationTime > firstPendingTime) {
@@ -219,7 +217,7 @@ export function markRootUpdatedAtTime(
 export function markRootFinishedAtTime(
   root: FiberRoot,
   finishedExpirationTime: ExpirationTime,
-  remainingExpirationTime: ExpirationTime,
+  remainingExpirationTime: ExpirationTime
 ): void {
   // Update the range of pending times
   root.firstPendingTime = remainingExpirationTime;
@@ -247,10 +245,7 @@ export function markRootFinishedAtTime(
   }
 }
 
-export function markRootExpiredAtTime(
-  root: FiberRoot,
-  expirationTime: ExpirationTime,
-): void {
+export function markRootExpiredAtTime(root: FiberRoot, expirationTime: ExpirationTime): void {
   const lastExpiredTime = root.lastExpiredTime;
   if (lastExpiredTime === NoWork || lastExpiredTime > expirationTime) {
     root.lastExpiredTime = expirationTime;
